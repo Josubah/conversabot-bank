@@ -79,18 +79,18 @@ const ProductSelector = ({ onSelectProduct, onBack }: ProductSelectorProps) => {
           {products.map((product) => (
             <Card
               key={product.id}
-              className={`p-6 cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br ${product.color} border-2 hover:border-primary/50`}
+              className={`p-6 cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br ${product.color} border-2 hover:border-primary/50 flex flex-col h-full`}
               onClick={() => onSelectProduct(product.id)}
             >
-              <div className="flex flex-col items-center text-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="flex flex-col items-center text-center gap-4 flex-1">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <product.icon className="w-8 h-8 text-primary" />
                 </div>
-                <div>
+                <div className="flex-1 flex flex-col justify-center">
                   <h3 className="text-xl font-bold mb-2">{product.title}</h3>
                   <p className="text-sm text-muted-foreground">{product.description}</p>
                 </div>
-                <Button className="w-full mt-2">
+                <Button className="w-full mt-auto">
                   Selecionar
                 </Button>
               </div>
