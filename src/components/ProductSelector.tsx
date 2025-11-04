@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Wallet, TrendingUp, Home, ArrowLeft } from "lucide-react";
+import { CreditCard, Wallet, TrendingUp, Home, ArrowLeft, PiggyBank, Shield } from "lucide-react";
 
 interface ProductSelectorProps {
   onSelectProduct: (product: string) => void;
@@ -36,6 +36,20 @@ const ProductSelector = ({ onSelectProduct, onBack }: ProductSelectorProps) => {
       description: 'Ofereça crédito pessoal e consignado',
       icon: Home,
       color: 'from-orange-500/20 to-orange-600/20'
+    },
+    {
+      id: 'capitalizacao',
+      title: 'Capitalização',
+      description: 'Apresente títulos de capitalização',
+      icon: PiggyBank,
+      color: 'from-yellow-500/20 to-yellow-600/20'
+    },
+    {
+      id: 'seguro',
+      title: 'Seguros',
+      description: 'Ofereça seguros de vida, auto e residencial',
+      icon: Shield,
+      color: 'from-red-500/20 to-red-600/20'
     }
   ];
 
@@ -61,7 +75,7 @@ const ProductSelector = ({ onSelectProduct, onBack }: ProductSelectorProps) => {
           <div className="w-20" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
             <Card
               key={product.id}

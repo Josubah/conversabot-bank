@@ -89,7 +89,21 @@ function getSystemPrompt(difficulty: string, product: string): string {
 - Prazo para pagamento
 - Valor das parcelas
 - Condições e exigências
-- Taxas adicionais (IOF, TAC, etc.)`
+- Taxas adicionais (IOF, TAC, etc.)`,
+
+    capitalizacao: `O vendedor está oferecendo TÍTULO DE CAPITALIZAÇÃO. Você está interessado especificamente em:
+- Valor das parcelas mensais
+- Prazo de capitalização
+- Rentabilidade do título
+- Frequência e valores dos sorteios
+- Valor de resgate no final`,
+
+    seguro: `O vendedor está oferecendo SEGUROS. Você está interessado especificamente em:
+- Tipos de cobertura incluídos
+- Valor do prêmio mensal
+- Franquia e carência
+- Processo de acionamento
+- Exclusões e limitações`
   };
   const bankProducts = `
 CONHECIMENTO SOBRE PRODUTOS BANCÁRIOS BRASILEIROS:
