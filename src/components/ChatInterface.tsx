@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Send, ArrowLeft, User, Bot } from "lucide-react";
@@ -23,6 +23,7 @@ const ChatInterface = ({ difficulty, product, onBack }: ChatInterfaceProps) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,6 +40,14 @@ const ChatInterface = ({ difficulty, product, onBack }: ChatInterfaceProps) => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
+    }
+  }, [input]);
 
   const getInitialGreeting = (diff: string, prod: string) => {
     const greetings: Record<string, Record<string, string>> = {
@@ -118,7 +127,7 @@ const ChatInterface = ({ difficulty, product, onBack }: ChatInterfaceProps) => {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -196,19 +205,22 @@ const ChatInterface = ({ difficulty, product, onBack }: ChatInterfaceProps) => {
 
         {/* Input */}
         <Card className="p-4 shadow-lg">
-          <div className="flex gap-2">
-            <Input
+          <div className="flex gap-2 items-end">
+            <Textarea
+              ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder="Digite sua resposta como vendedor..."
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 min-h-[44px] max-h-[150px] resize-none"
+              rows={1}
             />
             <Button
               onClick={sendMessage}
               disabled={isLoading || !input.trim()}
               size="icon"
+              className="flex-shrink-0"
             >
               <Send className="w-4 h-4" />
             </Button>
