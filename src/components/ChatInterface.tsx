@@ -110,10 +110,34 @@ const ChatInterface = ({ difficulty, product, onBack }: ChatInterfaceProps) => {
       if (error) throw error;
 
       if (data?.response) {
-        setMessages([...updatedMessages, {
+        // Check for sale conclusion markers
+        let content = data.response;
+        let saleResult: 'success' | 'failed' | null = null;
+        
+        if (content.includes('[VENDA_FECHADA]')) {
+          saleResult = 'success';
+          content = content.replace('[VENDA_FECHADA]', '').trim();
+        } else if (content.includes('[VENDA_PERDIDA]')) {
+          saleResult = 'failed';
+          content = content.replace('[VENDA_PERDIDA]', '').trim();
+        }
+
+        const assistantMessage: Message = {
           role: 'assistant',
-          content: data.response
-        }]);
+          content
+        };
+
+        setMessages([...updatedMessages, assistantMessage]);
+
+        // Show conclusion after a brief delay
+        if (saleResult) {
+          setTimeout(() => {
+            setMessages(prev => [
+              ...prev,
+              { role: 'assistant', content: `[CONCLUSAO_${saleResult.toUpperCase()}]` }
+            ]);
+          }, 500);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -161,34 +185,70 @@ const ChatInterface = ({ difficulty, product, onBack }: ChatInterfaceProps) => {
         <Card className="flex-1 mb-4 overflow-hidden shadow-lg">
           <ScrollArea className="h-full p-4" ref={scrollRef}>
             <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex gap-3 animate-slide-up ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  {message.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-5 h-5 text-primary" />
+              {messages.map((message, index) => {
+                // Check if this is a conclusion message
+                if (message.content.includes('[CONCLUSAO_')) {
+                  const isSuccess = message.content.includes('SUCCESS');
+                  return (
+                    <div key={index} className="flex flex-col items-center gap-4 py-8 animate-slide-up">
+                      <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                        isSuccess ? 'bg-green-500/20' : 'bg-red-500/20'
+                      }`}>
+                        {isSuccess ? (
+                          <div className="text-5xl">✓</div>
+                        ) : (
+                          <div className="text-5xl">✗</div>
+                        )}
+                      </div>
+                      <div className="text-center space-y-2">
+                        <h3 className="text-xl font-semibold">
+                          {isSuccess ? 'Parabéns! Venda Fechada! 🎉' : 'Não foi dessa vez 😢'}
+                        </h3>
+                        <p className="text-muted-foreground">
+                          {isSuccess 
+                            ? 'Excelente trabalho! O cliente decidiu contratar o produto.'
+                            : 'O cliente não se convenceu. Que tal tentar novamente?'}
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={onBack}
+                        className="mt-4"
+                      >
+                        Tentar Novamente
+                      </Button>
                     </div>
-                  )}
+                  );
+                }
+
+                return (
                   <div
-                    className={`max-w-[80%] p-3 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
+                    key={index}
+                    className={`flex gap-3 animate-slide-up ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                  {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                      <User className="w-5 h-5 text-accent" />
+                    {message.role === 'assistant' && (
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Bot className="w-5 h-5 text-primary" />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[80%] p-3 rounded-lg ${
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {message.role === 'user' && (
+                      <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-accent" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {isLoading && (
                 <div className="flex gap-3 justify-start animate-pulse">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
