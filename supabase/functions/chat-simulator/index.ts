@@ -11,14 +11,14 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, difficulty } = await req.json();
+    const { messages, difficulty, product } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY não configurada');
     }
 
-    const systemPrompt = getSystemPrompt(difficulty);
+    const systemPrompt = getSystemPrompt(difficulty, product);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -61,7 +61,36 @@ serve(async (req) => {
   }
 });
 
-function getSystemPrompt(difficulty: string): string {
+function getSystemPrompt(difficulty: string, product: string): string {
+  const productContext: Record<string, string> = {
+    conta: `O vendedor está oferecendo CONTA CORRENTE. Você está interessado especificamente em:
+- Tarifas mensais e isenções
+- Benefícios de cada tipo de conta
+- Facilidades do app/internet banking
+- Rede de caixas eletrônicos
+- Programas de pontos`,
+    
+    cartao: `O vendedor está oferecendo CARTÃO DE CRÉDITO. Você está interessado especificamente em:
+- Anuidade e possibilidades de isenção
+- Benefícios e programas de pontos
+- Limite de crédito
+- Descontos em parceiros
+- Seguros e proteções incluídas`,
+    
+    investimentos: `O vendedor está oferecendo INVESTIMENTOS. Você está interessado especificamente em:
+- Rentabilidade (% do CDI, taxas)
+- Liquidez (quando pode resgatar)
+- Taxa de administração
+- Riscos envolvidos
+- Valor mínimo de aplicação`,
+    
+    emprestimo: `O vendedor está oferecendo EMPRÉSTIMO. Você está interessado especificamente em:
+- Taxa de juros (mensal e anual)
+- Prazo para pagamento
+- Valor das parcelas
+- Condições e exigências
+- Taxas adicionais (IOF, TAC, etc.)`
+  };
   const bankProducts = `
 CONHECIMENTO SOBRE PRODUTOS BANCÁRIOS BRASILEIROS:
 
@@ -105,17 +134,20 @@ BANCO DO BRASIL:
 
 ${bankProducts}
 
+${productContext[product] || productContext.conta}
+
 IMPORTANTE: Você CONHECE todos esses produtos dos bancos listados acima. Você pode fazer comparações, mencionar taxas, falar sobre experiências que "ouviu falar" ou que "viu anúncios". Use esse conhecimento naturalmente na conversa.
 
 REGRAS FUNDAMENTAIS:
 1. Você é o CLIENTE, não o vendedor
-2. Responda APENAS como cliente interessado em produtos bancários
+2. Responda APENAS como cliente interessado no produto específico que o vendedor está oferecendo
 3. Seja brasileiro e use linguagem natural brasileira
-4. Faça perguntas relevantes sobre produtos, taxas, benefícios
+4. Faça perguntas relevantes sobre o produto, focando nos pontos listados acima
 5. Mantenha respostas concisas (2-4 frases no máximo)
 6. Reaja às ofertas do vendedor de forma natural
-7. Compare com outros bancos quando relevante
-8. Mostre interesse genuíno ou ceticismo baseado em sua personalidade`;
+7. Compare com produtos similares de outros bancos quando relevante
+8. Mostre interesse genuíno ou ceticismo baseado em sua personalidade
+9. NUNCA mude de assunto - mantenha o foco no produto sendo oferecido`;
 
   const difficultyPersonas = {
     easy: `${baseInstructions}

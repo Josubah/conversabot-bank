@@ -14,10 +14,11 @@ interface Message {
 
 interface ChatInterfaceProps {
   difficulty: 'easy' | 'medium' | 'hard';
+  product: string;
   onBack: () => void;
 }
 
-const ChatInterface = ({ difficulty, onBack }: ChatInterfaceProps) => {
+const ChatInterface = ({ difficulty, product, onBack }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,10 +29,10 @@ const ChatInterface = ({ difficulty, onBack }: ChatInterfaceProps) => {
     // Send initial greeting from the AI client
     const initialMessage: Message = {
       role: 'assistant',
-      content: getInitialGreeting(difficulty)
+      content: getInitialGreeting(difficulty, product)
     };
     setMessages([initialMessage]);
-  }, [difficulty]);
+  }, [difficulty, product]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -39,13 +40,36 @@ const ChatInterface = ({ difficulty, onBack }: ChatInterfaceProps) => {
     }
   }, [messages]);
 
-  const getInitialGreeting = (diff: string) => {
-    const greetings = {
-      easy: "Olá! Tudo bem? Estou procurando opções de conta e cartão de crédito. Vocês podem me ajudar?",
-      medium: "Oi. Eu já tenho conta em outro banco, mas queria saber o que vocês oferecem. O que vocês têm de diferente?",
-      hard: "Olha, já tenho conta em três bancos e francamente não estou muito satisfeito com nenhum. Por que eu deveria considerar abrir conta aqui?"
+  const getInitialGreeting = (diff: string, prod: string) => {
+    const productNames: Record<string, string> = {
+      conta: "conta corrente",
+      cartao: "cartão de crédito",
+      investimentos: "opções de investimento",
+      emprestimo: "empréstimo"
     };
-    return greetings[diff as keyof typeof greetings];
+
+    const greetings: Record<string, Record<string, string>> = {
+      easy: {
+        conta: "Olá! Tudo bem? Estou procurando uma boa conta corrente. Vocês podem me ajudar?",
+        cartao: "Oi! Estou interessado em um cartão de crédito com bons benefícios. O que vocês oferecem?",
+        investimentos: "Olá! Quero começar a investir meu dinheiro. Que opções vocês têm?",
+        emprestimo: "Oi! Preciso de um empréstimo pessoal. Vocês trabalham com isso?"
+      },
+      medium: {
+        conta: "Oi. Já tenho conta no Itaú, mas estou avaliando outras opções. O que vocês oferecem de diferente?",
+        cartao: "Olá. Tenho cartão sem anuidade no Santander. Por que eu deveria pegar um cartão com vocês?",
+        investimentos: "Oi. Já invisto em CDB no Bradesco com 100% do CDI. Vocês conseguem oferecer algo melhor?",
+        emprestimo: "Olá. Já tenho pré-aprovado de crédito consignado na Caixa. Quais são suas condições?"
+      },
+      hard: {
+        conta: "Olha, já tenho conta em três bancos e todos têm tarifas abusivas. Por que com vocês seria diferente?",
+        cartao: "Sinceramente, todos prometem benefícios mas no final é só propaganda. O que vocês têm de REAL?",
+        investimentos: "Ah é? Todo banco fala que tem as melhores taxas mas depois vem taxa de administração absurda. Como eu sei que não é mais do mesmo?",
+        emprestimo: "Já me ofereceram empréstimo com juros baixíssimos que depois viraram um absurdo nas letras miúdas. Por que eu deveria confiar?"
+      }
+    };
+
+    return greetings[diff]?.[prod] || greetings[diff].conta;
   };
 
   const getDifficultyLabel = (diff: string) => {
@@ -70,7 +94,8 @@ const ChatInterface = ({ difficulty, onBack }: ChatInterfaceProps) => {
       const { data, error } = await supabase.functions.invoke('chat-simulator', {
         body: {
           messages: updatedMessages,
-          difficulty
+          difficulty,
+          product
         }
       });
 
